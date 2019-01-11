@@ -22,6 +22,7 @@ import filecmp
 from datetime import datetime, timedelta
 import re
 import locale
+import time
 
 # Setting locale to the 'local' value
 locale.setlocale(locale.LC_ALL, '')
@@ -200,6 +201,7 @@ class ExifTool(object):
 
     def execute(self, *args):
         args = args + ("-execute\n",)
+        print(args)
         self.process.stdin.write(str.join("\n", args).encode('utf-8'))
         self.process.stdin.flush()
         output = ""
@@ -209,10 +211,16 @@ class ExifTool(object):
             if self.verbose:
                 sys.stdout.write(increment.decode('utf-8'))
             output += increment.decode('utf-8')
+        #     print(output)
+        #     print(self.sentinel)
+        #     print(output.rstrip(' \t\n\r').endswith(self.sentinel))
+        # print("outside of while loop!")
         return output.rstrip(' \t\n\r')[:-len(self.sentinel)]
 
     def get_metadata(self, *args):
-
+        # print("---->inside metadata")
+        # print(args)
+        # time.sleep(5)
         try:
             return json.loads(self.execute(*args))
         except ValueError:
@@ -302,13 +310,16 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
     # get all metadata
     with ExifTool(verbose=verbose) as e:
         print('Preprocessing with ExifTool.  May take a while for a large number of files.')
+
         sys.stdout.flush()
+        # print('test here')
+        # time.sleep(5)
         metadata = e.get_metadata(*args)
 
     # setup output to screen
     num_files = len(metadata)
     print()
-
+    # print('test here')
     if test:
         test_file_dict = {}
 
@@ -374,7 +385,10 @@ def sortPhotos(src_dir, dest_dir, sort_format, rename_format, recursive=False,
             filename = date.strftime(rename_format) + ext.lower()
 
         # setup destination file
-        dest_file = os.path.join(dest_file, filename.encode('utf-8'))
+        # print('dest_file-->', dest_file)
+        # print('filename-->', filename)
+        dest_file = os.path.join(dest_file, filename)
+        # print('dest_file-->', dest_file)
         root, ext = os.path.splitext(dest_file)
 
         if verbose:
